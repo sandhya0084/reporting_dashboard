@@ -1,0 +1,70 @@
+{% extends "base.html" %} {% block content %}
+<div class="jumbotron jumbotron-fluid bg-primary text-white">
+  <div class="container">
+    <h1 class="display-4">Welcome to Reporting Dashboard</h1>
+    <p class="lead">
+      Comprehensive analytics and reporting platform for your business
+      communications.
+    </p>
+    <hr class="my-4" />
+    <p>
+      Track email, voice calls, SMS, telemarketing, and social media campaigns
+      across all your clients.
+    </p>
+    <a class="btn btn-light btn-lg" href="{{ url_for('login') }}"
+      >Get Started</a
+    >
+  </div>
+</div>
+
+<div class="row mt-5">
+  <div class="col-md-4">
+    <div class="card h-100">
+      <img
+        src="https://picsum.photos/seed/email/300/200.jpg"
+        class="card-img-top"
+        alt="Email Campaigns"
+      />
+      <div class="card-body">
+        <h5 class="card-title">Email Campaigns</h5>
+        <p class="card-text">
+          Monitor and analyze email performance across all clients.
+        </p>
+        <a href="#" class="btn btn-primary">Learn More</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <img
+        src="https://picsum.photos/seed/calls/300/200.jpg"
+        class="card-img-top"
+        alt="Voice Calls"
+      />
+      <div class="card-body">
+        <h5 class="card-title">Voice Calls</h5>
+        <p class="card-text">
+          Track call volume and success rates for telemarketing efforts.
+        </p>
+        <a href="#" class="btn btn-primary">Learn More</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card h-100">
+      <img
+        src="https://picsum.photos/seed/social/300/200.jpg"
+        class="card-img-top"
+        alt="Social Media"
+      />
+      <div class="card-body">
+        <h5 class="card-title">Social Media</h5>
+        <p class="card-text">
+          Measure engagement and reach across major social platforms.
+        </p>
+        <a href="#" class="btn btn-primary">Learn More</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

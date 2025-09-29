@@ -1,0 +1,102 @@
+{% extends "base.html" %} {% block content %}
+<h2 class="mb-4">Client Profile: {{ client.name }}</h2>
+
+<div class="row">
+  <div class="col-md-8">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">Contact Information</h5>
+      </div>
+      <div class="card-body">
+        <dl class="row">
+          <dt class="col-sm-3">Name:</dt>
+          <dd class="col-sm-9">{{ client.name }}</dd>
+
+          <dt class="col-sm-3">Industry:</dt>
+          <dd class="col-sm-9">{{ client.industry }}</dd>
+
+          <dt class="col-sm-3">Email:</dt>
+          <dd class="col-sm-9">{{ client.contact_email }}</dd>
+
+          <dt class="col-sm-3">Phone:</dt>
+          <dd class="col-sm-9">{{ client.phone }}</dd>
+
+          <dt class="col-sm-3">Created:</dt>
+          <dd class="col-sm-9">{{ client.created_at.strftime('%Y-%m-%d') }}</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Communication Metrics</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3 text-center">
+            <div class="h4">{{ client.email_sent }}</div>
+            <div>Emails Sent</div>
+          </div>
+          <div class="col-md-3 text-center">
+            <div class="h4">{{ client.voice_calls }}</div>
+            <div>Voice Calls</div>
+          </div>
+          <div class="col-md-3 text-center">
+            <div class="h4">{{ client.sms_sent }}</div>
+            <div>SMS Messages</div>
+          </div>
+          <div class="col-md-3 text-center">
+            <div class="h4">{{ client.telemarketing_calls }}</div>
+            <div>Telemarketing Calls</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">Recent Activity</h5>
+      </div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center"
+          >
+            Email Campaign
+            <span class="badge bg-primary rounded-pill">New</span>
+          </li>
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center"
+          >
+            Voice Call
+            <span class="badge bg-success rounded-pill">Completed</span>
+          </li>
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center"
+          >
+            Social Post
+            <span class="badge bg-info rounded-pill">Published</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">Quick Actions</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          <button class="btn btn-primary">Send Email</button>
+          <button class="btn btn-success">Make Call</button>
+          <button class="btn btn-info">Send SMS</button>
+          <button class="btn btn-warning">Schedule Telemarketing</button>
+          <button class="btn btn-danger">Post to Social Media</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %} {% block content %}
+<div
+  class="landing vh-100 d-flex align-items-center justify-content-center"
+  style="background: linear-gradient(135deg, #6c63ff, #00c6ff); color: white"
+>
+  <div class="text-center">
+    <h1 class="display-4 fw-bold mb-4">Welcome to Reporting Dashboard</h1>
+    <p class="lead mb-4">
+      Track Email, SMS, Voice, Telemarketing, and Social Media campaigns for all
+      clients.
+    </p>
+    <a href="{{ url_for('register') }}" class="btn btn-light btn-lg me-3"
+      >Get Started</a
+    >
+    <a href="{{ url_for('login') }}" class="btn btn-outline-light btn-lg"
+      >Login</a
+    >
+  </div>
+</div>
+{% endblock %}
