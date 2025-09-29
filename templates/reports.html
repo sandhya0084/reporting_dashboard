@@ -1,39 +1,276 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Reports</title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div class="container mt-5">
-      <h2>{{ platform if platform else 'All' }} Reports</h2>
-      <table class="table table-striped mt-3">
-        <thead>
-          <tr>
-            <th>Client</th>
-            <th>Platform</th>
-            <th>Status</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for r in reports %}
-          <tr>
-            <td>{{ r.client.name }}</td>
-            <td>{{ r.platform }}</td>
-            <td>{{ r.status }}</td>
-            <td>{{ r.generated_at.strftime('%Y-%m-%d %H:%M') }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      <a href="{{ url_for('dashboard') }}" class="btn btn-secondary"
-        >Back to Dashboard</a
-      >
+{% extends 'base.html' %} {% block content %}
+
+<style>
+  h2 {
+    color: #2c3e50;
+    font-weight: 700;
+  }
+
+  /* Card styling */
+  .dashboard-card {
+    width: 160px;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #fff;
+    border-radius: 12px;
+    transition: all 0.3s ease-in-out;
+    text-align: center;
+  }
+
+  .dashboard-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0px 8px 18px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+  }
+
+  /* Gradient colors */
+  .card-users {
+    background: linear-gradient(135deg, #1abc9c, #16a085);
+  }
+  .card-email {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+  }
+  .card-sms {
+    background: linear-gradient(135deg, #f39c12, #d35400);
+  }
+  .card-voice {
+    background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  }
+  .card-tele {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+  }
+  .card-platform {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+  }
+
+  /* Table styling */
+  .report-table {
+    margin-top: 30px;
+    display: none;
+  }
+  .table th {
+    background-color: #34495e;
+    color: white;
+    text-align: center;
+  }
+  .table td {
+    text-align: center;
+  }
+
+  /* Back button */
+  .back-btn {
+    background: linear-gradient(135deg, #34495e, #2c3e50);
+    color: #fff;
+    border: none;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+  .back-btn:hover {
+    background: linear-gradient(135deg, #2c3e50, #1a252f);
+  }
+</style>
+
+<div class="container mt-4">
+  <h2 class="mb-4">📊 Feature Dashboard</h2>
+
+  <!-- Time Period Selector -->
+  <div class="mb-4 w-25">
+    <label for="timeFilter" class="form-label fw-bold">Time Period:</label>
+    <select id="timeFilter" class="form-select" onchange="updateAllTables()">
+      <option value="weekly">Weekly</option>
+      <option value="monthly" selected>Monthly</option>
+      <option value="lastMonth">Last Month</option>
+    </select>
+  </div>
+
+  <!-- Dashboard Cards -->
+  <div id="cardsContainer" class="mb-4 d-flex flex-wrap gap-3">
+    <div class="dashboard-card card-users" onclick="showTable('users')">
+      Total Users
     </div>
-  </body>
-</html>
+    <div class="dashboard-card card-email" onclick="showTable('email')">
+      Total Email
+    </div>
+    <div class="dashboard-card card-sms" onclick="showTable('sms')">
+      Total SMS
+    </div>
+    <div class="dashboard-card card-voice" onclick="showTable('voice')">
+      Total Voice
+    </div>
+    <div class="dashboard-card card-tele" onclick="showTable('tele')">
+      Total Tele
+    </div>
+    <div class="dashboard-card card-platform" onclick="showTable('platform')">
+      Total Platform
+    </div>
+  </div>
+
+  <!-- Report Table -->
+  <div id="reportTable" class="report-table">
+    <h4 id="reportTitle" class="mb-3"></h4>
+    <table class="table table-bordered table-hover">
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody id="reportBody"></tbody>
+    </table>
+    <button class="btn back-btn mt-3" onclick="hideTable()">
+      ⬅ Back to card
+    </button>
+  </div>
+</div>
+
+<!-- JS for Dynamic Tables -->
+<script>
+  const dummyReports = [
+    {
+      client: "Client A",
+      email: "clientA@example.com",
+      phone: "+91 9876543210",
+      reports: {
+        weekly: {
+          users: 30,
+          email: 100,
+          sms: 50,
+          voice: 20,
+          tele: 10,
+          platform: "Web",
+        },
+        monthly: {
+          users: 120,
+          email: 500,
+          sms: 200,
+          voice: 80,
+          tele: 40,
+          platform: "Web",
+        },
+        lastMonth: {
+          users: 100,
+          email: 400,
+          sms: 180,
+          voice: 70,
+          tele: 35,
+          platform: "Web",
+        },
+      },
+    },
+    {
+      client: "Client B",
+      email: "clientB@example.com",
+      phone: "+91 9123456780",
+      reports: {
+        weekly: {
+          users: 20,
+          email: 80,
+          sms: 40,
+          voice: 15,
+          tele: 8,
+          platform: "Mobile",
+        },
+        monthly: {
+          users: 80,
+          email: 300,
+          sms: 150,
+          voice: 60,
+          tele: 30,
+          platform: "Mobile",
+        },
+        lastMonth: {
+          users: 90,
+          email: 350,
+          sms: 160,
+          voice: 65,
+          tele: 32,
+          platform: "Mobile",
+        },
+      },
+    },
+    {
+      client: "Client C",
+      email: "clientC@example.com",
+      phone: "+91 9001122334",
+      reports: {
+        weekly: {
+          users: 35,
+          email: 120,
+          sms: 60,
+          voice: 25,
+          tele: 12,
+          platform: "Web",
+        },
+        monthly: {
+          users: 140,
+          email: 480,
+          sms: 220,
+          voice: 90,
+          tele: 45,
+          platform: "Web",
+        },
+        lastMonth: {
+          users: 130,
+          email: 450,
+          sms: 210,
+          voice: 85,
+          tele: 42,
+          platform: "Web",
+        },
+      },
+    },
+  ];
+
+  function showTable(type) {
+    const timePeriod = document.getElementById("timeFilter").value;
+    const tableBody = document.getElementById("reportBody");
+    const reportTitle = document.getElementById("reportTitle");
+
+    // Set table title
+    reportTitle.innerText = `Report: Total ${
+      type.charAt(0).toUpperCase() + type.slice(1)
+    } (${timePeriod})`;
+
+    // Clear old rows
+    tableBody.innerHTML = "";
+
+    // Populate new rows
+    dummyReports.forEach((client) => {
+      let value = client.reports[timePeriod][type];
+      if (typeof value === "number") value = value.toLocaleString();
+      tableBody.innerHTML += `
+        <tr>
+          <td>${client.client}</td>
+          <td>${client.email}</td>
+          <td>${client.phone}</td>
+          <td>${value}</td>
+        </tr>`;
+    });
+
+    // Show report table
+    document.getElementById("reportTable").style.display = "block";
+  }
+
+  function updateAllTables() {
+    if (document.getElementById("reportTable").style.display === "block") {
+      const currentTitle = document.getElementById("reportTitle").innerText;
+      if (currentTitle.includes("Users")) showTable("users");
+      else if (currentTitle.includes("Email")) showTable("email");
+      else if (currentTitle.includes("SMS")) showTable("sms");
+      else if (currentTitle.includes("Voice")) showTable("voice");
+      else if (currentTitle.includes("Tele")) showTable("tele");
+      else if (currentTitle.includes("Platform")) showTable("platform");
+    }
+  }
+
+  function hideTable() {
+    document.getElementById("reportTable").style.display = "none";
+  }
+</script>
+
+{% endblock %}

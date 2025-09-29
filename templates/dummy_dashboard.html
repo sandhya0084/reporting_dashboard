@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dummy Dashboard Reports</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .card {
+        display: inline-block;
+        padding: 20px;
+        margin: 10px;
+        background-color: #4caf50;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 5px;
+        text-align: center;
+        width: 140px;
+        vertical-align: top;
+      }
+      .card:hover {
+        background-color: #45a049;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 10px;
+      }
+      table,
+      th,
+      td {
+        border: 1px solid #ccc;
+      }
+      th,
+      td {
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+      label {
+        font-weight: bold;
+        margin-right: 10px;
+      }
+      .table-container {
+        margin-top: 10px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Dummy Dashboard Reports</h1>
+
+    <div>
+      <label>Time Period:</label>
+      <select id="timeFilter" onchange="updateAllTables()">
+        <option value="weekly">Weekly</option>
+        <option value="monthly" selected>Monthly</option>
+        <option value="lastMonth">Last Month</option>
+      </select>
+    </div>
+
+    <div id="cardsContainer">
+      <div class="card" onclick="toggleTable('users')">
+        Total Users
+        <div id="table-users" class="table-container"></div>
+      </div>
+
+      <div class="card" onclick="toggleTable('email')">
+        Total Email
+        <div id="table-email" class="table-container"></div>
+      </div>
+
+      <div class="card" onclick="toggleTable('sms')">
+        Total SMS
+        <div id="table-sms" class="table-container"></div>
+      </div>
+
+      <div class="card" onclick="toggleTable('voice')">
+        Total Voice
+        <div id="table-voice" class="table-container"></div>
+      </div>
+
+      <div class="card" onclick="toggleTable('tele')">
+        Total Tele
+        <div id="table-tele" class="table-container"></div>
+      </div>
+
+      <div class="card" onclick="toggleTable('platform')">
+        Total Platform
+        <div id="table-platform" class="table-container"></div>
+      </div>
+    </div>
+
+    <script src="dummyData.js"></script>
+    <script>
+      function toggleTable(type) {
+        const tableDiv = document.getElementById(`table-${type}`);
+        const isVisible = tableDiv.style.display === "block";
+
+        if (!isVisible) {
+          renderTable(type);
+          tableDiv.style.display = "block";
+        } else {
+          tableDiv.style.display = "none";
+        }
+      }
+
+      function updateAllTables() {
+        // Update all currently visible tables when time period changes
+        document.querySelectorAll(".table-container").forEach((div) => {
+          if (div.style.display === "block") {
+            const type = div.id.replace("table-", "");
+            renderTable(type);
+          }
+        });
+      }
+
+      function renderTable(type) {
+        const tableDiv = document.getElementById(`table-${type}`);
+        const timePeriod = document.getElementById("timeFilter").value;
+
+        let html = `<table>
+    <tr><th>Client</th><th>${type.toUpperCase()}</th></tr>`;
+
+        dummyReports.forEach((client) => {
+          let value = client.reports[timePeriod][type];
+          if (typeof value === "number") value = value.toLocaleString();
+          html += `<tr><td>${client.client}</td><td>${value}</td></tr>`;
+        });
+
+        html += `</table>`;
+        tableDiv.innerHTML = html;
+      }
+    </script>
+  </body>
+</html>
