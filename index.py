@@ -5,24 +5,25 @@ from flask_mail import Mail
 from models import db, User, Client, Report
 from forms import RegistrationForm, LoginForm
 from email_utils import send_verification_email
+from asgiref.wsgi import WsgiToAsgi
 
 # -------------------- APP CONFIG --------------------
-app = Flask(__name__)
-app.secret_key = "supersecretkey"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///reporting.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+flask_app = Flask(__name__)
+flask_app.secret_key = "supersecretkey"
+flask_app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///reporting.db'
+flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # -------------------- MAIL CONFIG --------------------
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'sandhyachirumamilla6@gmail.com'       # Your Gmail
-app.config['MAIL_PASSWORD'] = 'wdwxvjbvqnydbibp'                      # Your Gmail App Password
-mail = Mail(app)
+flask_app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+flask_app.config['MAIL_PORT'] = 587
+flask_app.config['MAIL_USE_TLS'] = True
+flask_app.config['MAIL_USERNAME'] = 'sandhyachirumamilla6@gmail.com'       # Your Gmail
+flask_app.config['MAIL_PASSWORD'] = 'wdwxvjbvqnydbibp'                      # Your Gmail App Password
+mail = Mail(flask_app)
 
 # -------------------- DATABASE & LOGIN --------------------
-db.init_app(app)
-login_manager = LoginManager(app)
+db.init_app(flask_app)
+login_manager = LoginManager(flask_app)
 login_manager.login_view = 'login'
 
 @login_manager.user_loader
@@ -31,12 +32,12 @@ def load_user(user_id):
 
 # -------------------- ROUTES --------------------
 
-@app.route('/')
+@flask_app.route('/')
 def home():
     return render_template('home.html')
 
 
-@app.route('/register', methods=['GET','POST'])
+@flask_app.route('/register', methods=['GET','POST'])
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
@@ -51,7 +52,7 @@ def register():
 
         # Fail-safe email sending
         try:
-            send_verification_email(app, user, mail)
+            send_verification_email(flask_app, user, mail)
             flash('Account created! Check your email to verify.', 'success')
         except Exception as e:
             print("Email sending failed:", e)
@@ -62,10 +63,10 @@ def register():
     return render_template('register.html', form=form)
 
 
-@app.route('/verify_email/<token>')
+@flask_app.route('/verify_email/<token>')
 def verify_email(token):
     from itsdangerous import URLSafeTimedSerializer
-    s = URLSafeTimedSerializer(app.secret_key)
+    s = URLSafeTimedSerializer(flask_app.secret_key)
     try:
         email = s.loads(token, salt='email-confirm', max_age=3600)
     except:
@@ -82,7 +83,7 @@ def verify_email(token):
     return redirect(url_for('login'))
 
 
-@app.route("/resend_verification", methods=["GET", "POST"])
+@flask_app.route("/resend_verification", methods=["GET", "POST"])
 def resend_verification():
     if request.method == "POST":
         email = request.form["email"]
@@ -90,7 +91,7 @@ def resend_verification():
 
         if user and not user.verified:
             try:
-                send_verification_email(app, user, mail)
+                send_verification_email(flask_app, user, mail)
                 flash("Verification email resent. Please check your inbox.", "success")
             except Exception as e:
                 print(f" Resend failed: {str(e)}")
@@ -101,7 +102,7 @@ def resend_verification():
     return render_template("resend_verification.html")
 
 
-@app.route('/login', methods=['GET','POST'])
+@flask_app.route('/login', methods=['GET','POST'])
 def login():
     form = LoginForm()
     if current_user.is_authenticated:
@@ -123,7 +124,7 @@ def login():
     return render_template('login.html', form=form)
 
 
-@app.route('/logout')
+@flask_app.route('/logout')
 @login_required
 def logout():
     logout_user()
@@ -131,7 +132,7 @@ def logout():
     return redirect(url_for('login'))
 
 
-@app.route('/dashboard')
+@flask_app.route('/dashboard')
 @login_required
 def dashboard():
     clients = Client.query.all()
@@ -144,7 +145,7 @@ def dashboard():
                            total_tele=sum(c.telemarketing_calls for c in clients))
 
 
-@app.route('/reports')
+@flask_app.route('/reports')
 @login_required
 def reports():
     platform = request.args.get('platform')
@@ -156,7 +157,7 @@ def reports():
 
 
 # -------------------- DATABASE INIT --------------------
-with app.app_context():
+with flask_app.app_context():
     db.create_all()
     # Add sample clients if none exist
     if not Client.query.first():
@@ -170,4 +171,4 @@ with app.app_context():
 
 # -------------------- RUN APP --------------------
 if __name__ == '__main__':
-    app.run(debug=True)
+    flask_app.run(debug=True)
