@@ -91,21 +91,35 @@ def verify_email(token):
 
 @flask_app.route("/resend_verification", methods=["GET", "POST"])
 def resend_verification():
+    # GET: show form. POST: handle resend then redirect (PRG pattern).
     if request.method == "POST":
-        email = request.form["email"]
+        email = (request.form.get("email") or "").strip()
+        if not email:
+            flash("Please enter an email address.", "warning")
+            return render_template("resend_verification.html", email=email)
+
         user = User.query.filter_by(email=email).first()
 
-        if user and not user.verified:
+        if user:
+            if user.verified:
+                flash("This email is already verified. Please login.", "info")
+                return redirect(url_for('login'))
+
             try:
                 send_verification_email(flask_app, user, mail)
                 flash("Verification email resent. Please check your inbox.", "success")
+                return redirect(url_for('login'))
             except Exception as e:
-                print(f" Resend failed: {str(e)}")
+                print(f"Resend failed: {str(e)}")
                 flash("Failed to send verification email. Please try again later.", "danger")
-        else:
-            flash("Email not found or already verified.", "warning")
+                return render_template("resend_verification.html", email=email)
 
-    return render_template("resend_verification.html")
+        # No matching user
+        flash("Email not found. Would you like to register instead?", "warning")
+        return redirect(url_for('register'))
+
+    prefill_email = request.args.get('email', '')
+    return render_template("resend_verification.html", email=prefill_email)
 
 
 @flask_app.route('/login', methods=['GET','POST'])
@@ -124,10 +138,12 @@ def login():
             else:
                 flash('Please verify your email first', 'warning')
         else:
-            flash('Invalid email or password', 'danger')
-            return redirect(url_for('resend_verification'))
+            auth_error = 'Invalid email or password'
+            prefill_email = form.email.data or ''
+            return render_template('login.html', form=form, email=prefill_email, auth_error=auth_error)
 
-    return render_template('login.html', form=form)
+    prefill_email = request.args.get('email', '')
+    return render_template('login.html', form=form, email=prefill_email)
 
 
 @flask_app.route('/logout')
@@ -162,6 +178,12 @@ def reports():
     return render_template('reports.html', reports=reports, platform=platform)
 
 
+# Simple health endpoint for local checks and parity with api/index.py
+@flask_app.route('/healthz')
+def healthz():
+    return ("OK", 200)
+
+
 # -------------------- DATABASE INIT --------------------
 with flask_app.app_context():
     db.create_all()
@@ -176,5 +198,13 @@ with flask_app.app_context():
 
 
 # -------------------- RUN APP --------------------
+# Export a top-level `app` name so WSGI servers can import this module
+# (e.g., gunicorn index:app). This makes the application easier to run
+# from different entrypoints.
+app = flask_app
+
 if __name__ == '__main__':
+    # For local development only: disable CSRF to simplify testing with the
+    # dev server and test clients. Do NOT enable this in production.
+    flask_app.config.setdefault('WTF_CSRF_ENABLED', False)
     flask_app.run(debug=True)

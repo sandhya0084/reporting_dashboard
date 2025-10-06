@@ -27,8 +27,18 @@
       <h2 class="text-center mb-4">Login</h2>
 
       <!-- Flash Messages -->
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %} {% for category, message in messages %}
+      {% if auth_error %}
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ auth_error }}
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="alert"
+          aria-label="Close"
+        ></button>
+      </div>
+      {% endif %} {% with messages = get_flashed_messages(with_categories=true)
+      %} {% if messages %} {% for category, message in messages %}
       <div
         class="alert alert-{{ category }} alert-dismissible fade show"
         role="alert"
@@ -46,12 +56,21 @@
       <form method="POST">
         {{ form.hidden_tag() }}
         <div class="mb-3">
-          {{ form.email.label(class="form-label") }}{{
-          form.email(class="form-control") }}
+          {{ form.email.label(class="form-label") }} {{
+          form.email(class="form-control", placeholder='Email',
+          value=email|default(form.email.data or '')) }} {% if form.email.errors
+          %}
+          <div class="text-danger small mt-1">{{ form.email.errors[0] }}</div>
+          {% endif %}
         </div>
         <div class="mb-3">
-          {{ form.password.label(class="form-label") }}{{
-          form.password(class="form-control") }}
+          {{ form.password.label(class="form-label") }} {{
+          form.password(class="form-control", placeholder='Password') }} {% if
+          form.password.errors %}
+          <div class="text-danger small mt-1">
+            {{ form.password.errors[0] }}
+          </div>
+          {% endif %}
         </div>
         {{ form.submit(class="btn btn-success w-100") }}
       </form>
