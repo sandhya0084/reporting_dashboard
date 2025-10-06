@@ -1,3 +1,4 @@
+# ...existing code...
 from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -7,21 +8,24 @@ from forms import RegistrationForm, LoginForm
 from email_utils import send_verification_email
 from asgiref.wsgi import WsgiToAsgi
 from dotenv import load_dotenv
+import os
 
 load_dotenv()
 
 # -------------------- APP CONFIG --------------------
 flask_app = Flask(__name__)
-flask_app.secret_key = "supersecretkey"
-flask_app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///reporting.db'
+# Use env var for secret key in production; fall back to a local default for dev
+flask_app.secret_key = os.environ.get('SECRET_KEY', 'supersecretkey')
+# Allow configuring the DB via DATABASE_URL (set this in Vercel). Default to sqlite for local dev.
+flask_app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///reporting.db')
 flask_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # -------------------- MAIL CONFIG --------------------
-flask_app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-flask_app.config['MAIL_PORT'] = 587
-flask_app.config['MAIL_USE_TLS'] = True
-flask_app.config['MAIL_USERNAME'] = 'sandhyachirumamilla6@gmail.com'       # Your Gmail
-flask_app.config['MAIL_PASSWORD'] = 'wdwxvjbvqnydbibp'                      # Your Gmail App Password
+flask_app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+flask_app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
+flask_app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True').lower() in ('1', 'true', 'yes')
+flask_app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+flask_app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
 mail = Mail(flask_app)
 
 # -------------------- DATABASE & LOGIN --------------------
@@ -122,7 +126,7 @@ def login():
                 flash('Please verify your email first', 'warning')
         else:
             flash('Invalid email or password', 'danger')
-            return redirect(url_for(resend_verification))
+            return redirect(url_for('resend_verification'))
 
     return render_template('login.html', form=form)
 
@@ -172,6 +176,8 @@ with flask_app.app_context():
         db.session.commit()
 
 
-# -------------------- RUN APP --------------------
-if __name__ == '__main__':
-    flask_app.run(debug=True)
+# -------------------- VERCEL / ASGI ENTRYPOINT --------------------
+# Wrap the Flask (WSGI) app with ASGI adapter and export as `app` so Vercel (and other ASGI hosts) can load it.
+app = WsgiToAsgi(flask_app)
+
+# Note: Do NOT run the Flask development server here. Vercel will invoke `app` as an ASGI callable.
